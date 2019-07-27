@@ -35,4 +35,10 @@ public class CodeMsg {
     public String getMsg() {
         return msg;
     }
+
+    public CodeMsg fillArgs(Object... args) {
+        int code = this.code;
+        String message = String.format(this.msg, args);
+        return new CodeMsg(code, message);
+    }
 }

@@ -27,16 +27,27 @@ public class LoginController {
     @Autowired
     RedisService redisService;
 
+    /**
+     * 跳转至login页面
+     *
+     * @return
+     */
     @RequestMapping("/to_login")
     public String toLogin() {
         return "login";
     }
 
+    /**
+     * 执行login方法
+     *
+     * @param response
+     * @param loginVo
+     * @return
+     */
     @RequestMapping("/do_login")
     @ResponseBody
     public Result<Boolean> doLogin(HttpServletResponse response, @Valid LoginVo loginVo) {
         log.info(loginVo.toString());
-        //登录
         userService.login(response, loginVo);
         return Result.success(true);
     }
