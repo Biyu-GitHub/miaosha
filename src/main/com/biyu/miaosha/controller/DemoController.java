@@ -1,6 +1,8 @@
 package com.biyu.miaosha.controller;
 
 import com.biyu.miaosha.entity.User;
+import com.biyu.miaosha.redis.RedisService;
+import com.biyu.miaosha.redis.UserKey;
 import com.biyu.miaosha.result.CodeMsg;
 import com.biyu.miaosha.result.Result;
 import com.biyu.miaosha.service.UserService;
@@ -17,6 +19,9 @@ public class DemoController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    RedisService redisService;
 
     @RequestMapping("/")
     @ResponseBody
@@ -56,6 +61,23 @@ public class DemoController {
     @ResponseBody
     public Result<Boolean> dbTx() {
         userService.tx();
+        return Result.success(true);
+    }
+
+    @RequestMapping("/redis/get")
+    @ResponseBody
+    public Result<User> redisGet() {
+        User  user  = redisService.get(UserKey.getById, ""+1, User.class);
+        return Result.success(user);
+    }
+
+    @RequestMapping("/redis/set")
+    @ResponseBody
+    public Result<Boolean> redisSet() {
+        User user  = new User();
+        user.setId(1);
+        user.setName("1111");
+        redisService.set(UserKey.getById, ""+1, user);//UserKey:id1
         return Result.success(true);
     }
 }
