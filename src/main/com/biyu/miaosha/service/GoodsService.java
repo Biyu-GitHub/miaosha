@@ -15,7 +15,7 @@ public class GoodsService {
     @Autowired
     GoodsDao goodsDao;
 
-    public List<GoodsVo> listGoodsVo(){
+    public List<GoodsVo> listGoodsVo() {
         return goodsDao.listGoodsVo();
     }
 
@@ -23,12 +23,16 @@ public class GoodsService {
         return goodsDao.getGoodsVoByGoodsId(goodsId);
     }
 
+    /**
+     * 减库存
+     *
+     * @param goods
+     */
     public void reduceStock(GoodsVo goods) {
         MiaoshaGoods g = new MiaoshaGoods();
         g.setGoodsId(goods.getId());
         goodsDao.reduceStock(g);
     }
-
 
 
 }
