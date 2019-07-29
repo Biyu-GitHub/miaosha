@@ -1,6 +1,4 @@
-package com.biyu.miaosha.result;
-
-import com.biyu.miaosha.redis.BasePrefix;
+package com.biyu.miaosha.redis;
 
 public class MiaoshaUserKey extends BasePrefix {
     public static final int TOKEN_EXPIRE = 3600 * 24 * 2;

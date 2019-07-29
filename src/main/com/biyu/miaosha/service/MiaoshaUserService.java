@@ -5,7 +5,7 @@ import com.biyu.miaosha.entity.MiaoshaUser;
 import com.biyu.miaosha.exception.GlobalException;
 import com.biyu.miaosha.redis.RedisService;
 import com.biyu.miaosha.result.CodeMsg;
-import com.biyu.miaosha.result.MiaoshaUserKey;
+import com.biyu.miaosha.redis.MiaoshaUserKey;
 import com.biyu.miaosha.util.MD5Util;
 import com.biyu.miaosha.util.UUIDUtil;
 import com.biyu.miaosha.vo.LoginVo;
