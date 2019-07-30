@@ -42,4 +42,9 @@ public class CodeMsg {
         String message = String.format(this.msg, args);
         return new CodeMsg(code, message);
     }
+
+    @Override
+    public String toString() {
+        return "CodeMsg [code=" + code + ", msg=" + msg + "]";
+    }
 }
