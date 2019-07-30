@@ -1,17 +1,31 @@
 package com.biyu.miaosha.controller;
 
-import com.biyu.miaosha.entity.MiaoshaUser;
-import com.biyu.miaosha.redis.RedisService;
-import com.biyu.miaosha.service.GoodsService;
-import com.biyu.miaosha.service.MiaoshaUserService;
-import com.biyu.miaosha.vo.GoodsVo;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
+
+import com.biyu.miaosha.entity.MiaoshaUser;
+import com.biyu.miaosha.redis.GoodsKey;
+import com.biyu.miaosha.redis.RedisService;
+//import com.biyu.miaosha.result.Result;
+import com.biyu.miaosha.service.GoodsService;
+import com.biyu.miaosha.service.MiaoshaUserService;
+//import com.biyu.miaosha.vo.GoodsDetailVo;
+import com.biyu.miaosha.vo.GoodsVo;
+import org.thymeleaf.context.IWebContext;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
 @Controller
 @RequestMapping("/goods")
@@ -26,24 +40,45 @@ public class GoodsController {
     @Autowired
     GoodsService goodsService;
 
+    @Autowired
+    ThymeleafViewResolver thymeleafViewResolver;
+
+    @Autowired
+    ApplicationContext applicationContext;
+
     /**
-     * 跳转到商品列表
+     * 跳转到商品列表 --> 直接返回html页面
      *
      * @param model
      * @param user
      * @return
      */
-    @RequestMapping("/to_list")
-    public String list(Model model, MiaoshaUser user) {
+    @RequestMapping(value = "/to_list", produces = "text/html")
+    @ResponseBody
+    public String list(HttpServletRequest request, HttpServletResponse response, Model model, MiaoshaUser user) {
         model.addAttribute("user", user);
-        //查询商品列表
+
+        // 取缓存，如果取到则直接返回
+        String html = redisService.get(GoodsKey.getGoodsList, "", String.class);
+        if (!StringUtils.isEmpty(html)) {
+            return html;
+        }
+
+        // 获取商品列表
         List<GoodsVo> goodsList = goodsService.listGoodsVo();
         model.addAttribute("goodsList", goodsList);
-        return "goods_list";
+
+        // 手动渲染 保存到缓存中
+        IWebContext ctx = new WebContext(request, response, request.getServletContext(), request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goods_list", ctx);
+        if (!StringUtils.isEmpty(html)) {
+            redisService.set(GoodsKey.getGoodsList, "", html);
+        }
+        return html;
     }
 
     /**
-     * 详情页
+     * 详情页 --> 缓存
      *
      * @param model
      * @param user
@@ -51,10 +86,18 @@ public class GoodsController {
      * @return
      */
     @RequestMapping("/to_detail/{goodsId}")
-    public String detail(Model model, MiaoshaUser user,
+    @ResponseBody
+    public String detail(HttpServletRequest request, HttpServletResponse response, Model model, MiaoshaUser user,
                          @PathVariable("goodsId") long goodsId) {
         model.addAttribute("user", user);
 
+        //取缓存
+        String html = redisService.get(GoodsKey.getGoodsDetail, "" + goodsId, String.class);
+        if (!StringUtils.isEmpty(html)) {
+            return html;
+        }
+
+        // 取不到再进行手动渲染
         GoodsVo goods = goodsService.getGoodsVoByGoodsId(goodsId);
         model.addAttribute("goods", goods);
 
@@ -76,6 +119,15 @@ public class GoodsController {
         }
         model.addAttribute("miaoshaStatus", miaoshaStatus);
         model.addAttribute("remainSeconds", remainSeconds);
-        return "goods_detail";
+
+        // return "goods_detail";
+
+        IWebContext ctx = new WebContext(request, response, request.getServletContext(), request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goods_detail", ctx);
+        if (!StringUtils.isEmpty(html)) {
+            redisService.set(GoodsKey.getGoodsDetail, "" + goodsId, html);
+        }
+
+        return html;
     }
 }
