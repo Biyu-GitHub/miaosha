@@ -14,14 +14,21 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * 批量生成用户
- */
+
 public class UserUtil {
 
+    /**
+     * 批量注册用户，插入到数据库中，并得到token
+     * 用户名：1300000xxxx
+     * 密码：123456
+     *
+     * @param count
+     * @throws Exception
+     */
     private static void createUser(int count) throws Exception {
         List<MiaoshaUser> users = new ArrayList<MiaoshaUser>(count);
-        //生成用户
+
+        // 批量生成生成用户
         for (int i = 0; i < count; i++) {
             MiaoshaUser user = new MiaoshaUser();
             user.setId(13000000000L + i);
@@ -30,10 +37,13 @@ public class UserUtil {
             user.setRegisterDate(new Date());
             user.setSalt("1a2b3c");
             user.setPassword(MD5Util.inputPassToDbPass("123456", user.getSalt()));
+
+            // 存储到list集合中
             users.add(user);
         }
-        System.out.println("create user");
-        //插入数据库
+        System.out.println("所有生成的用户已经保存到List中!");
+
+        // 插入数据库
         Connection conn = DBUtil.getConn();
         String sql = "insert into miaosha_user(login_count, nickname, register_date, salt, password, id)values(?,?,?,?,?,?)";
         PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -50,9 +60,11 @@ public class UserUtil {
         pstmt.executeBatch();
         pstmt.close();
         conn.close();
-        System.out.println("insert to db");
-        //登录，生成token
+        System.out.println("所有生成的用户已经插入到数据库中");
+
+        // 登录，生成token
         String urlString = "http://localhost:8080/login/do_login";
+        // 创建文件
         File file = new File("C:\\Users\\BiYu\\projects\\miaosha\\tokens.txt");
         if (file.exists()) {
             file.delete();
@@ -60,6 +72,7 @@ public class UserUtil {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         file.createNewFile();
         raf.seek(0);
+        // 写入内容
         for (int i = 0; i < users.size(); i++) {
             MiaoshaUser user = users.get(i);
             URL url = new URL(urlString);
