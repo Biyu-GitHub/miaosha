@@ -128,9 +128,94 @@ UNIQUE KEY `u_uid_gid` (`user_id`,`goods_id`) USING BTREE
 
 ## 登录页面
 
-* 配置
+在提交的时候加密一次
 
+```html
+var str = "" + salt.charAt(0) + salt.charAt(2) + inputPass + salt.charAt(5) + salt.charAt(4);
+var password = md5(str);
 
+$.ajax({
+    url: "/login/do_login",
+    type: "POST",
+    data: {
+    mobile: $("#mobile").val(),
+    password: password
+})
+```
+
+```java
+/**
+* 执行login方法
+*
+* @param response
+* @param loginVo
+* @return
+*/
+@RequestMapping("/do_login")
+@ResponseBody
+public Result<Boolean> doLogin(HttpServletResponse response, @Valid LoginVo loginVo) {
+    log.info(loginVo.toString());
+    userService.login(response, loginVo);
+    return Result.success(true);
+}
+```
+
+loginVo存储手机号与一次加密的密码，在loginVo中进行手机号的校验
+
+```java
+/**
+* 用户登录功能实现
+* 1. 判断手机号是否存在
+* 2. 获取密码一数据库中的随机码做MD5，
+*
+* @param response
+* @param loginVo
+* @return
+*/
+public boolean login(HttpServletResponse response, LoginVo loginVo) {
+    if (loginVo == null) {
+        throw new GlobalException(CodeMsg.SERVER_ERROR);
+    }
+    
+    // 获取手机号与密码
+    String mobile = loginVo.getMobile();
+    String formPass = loginVo.getPassword();
+    
+    // 查询数据库，判断手机号是否存在
+    MiaoshaUser user = getById(Long.parseLong(mobile));
+    if (user == null) {
+        throw new GlobalException(CodeMsg.MOBILE_NOT_EXIST);
+    }
+    
+    /**
+    * 1.从数据库获取密码
+    * 2.获取随机字符串
+    * 3.使用该字符串加密前端传过来的密码
+    * 4.判断密码是否正确
+    */
+    String dbPass = user.getPassword();
+    String saltDB = user.getSalt();
+    String calcPass = MD5Util.formPassToDBPass(formPass, saltDB);
+    if (!calcPass.equals(dbPass)) {
+        throw new GlobalException(CodeMsg.PASSWORD_ERROR);
+    }
+
+    // 生成cookie
+    String token = UUIDUtil.uuid(); // 生成随机的token
+    addCookie(response, token, user);
+    return true;
+}
+```
+
+* 写缓存
+
+    1. token + 前缀
+    2. user转字符串
+    3. 获取国企时间
+    4. 将token:user写入到redis缓存
+* 写cookie
+    1. 将“token”:token写入到session中
+    2. 必须设置过期时间
 
 # 秒杀压测
 
