@@ -5,6 +5,10 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotNull;
 
+/**
+ * 从前端接收mobile，与password并创建该对象
+ * 主要进行手机号的校验功能
+ */
 public class LoginVo {
 
     @NotNull

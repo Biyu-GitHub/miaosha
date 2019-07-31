@@ -1,5 +1,14 @@
 package com.biyu.miaosha.result;
 
+/**
+ * 状态错误码信息
+ *
+ * @code 错误码
+ * @msg 错误信息
+ * 定义一些静态的成员，使用的时候直接调用即可
+ * 例如：CodeMsg.SERVER_ERROR
+ * 重写toString方法，方便输出
+ */
 public class CodeMsg {
     private int code;
     private String msg;

@@ -22,18 +22,39 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
     @Autowired
     MiaoshaUserService userService;
 
+    /**
+     * 判断参数类型是否是MiaoshaUser，如果是，则进行下一步处理
+     *
+     * @param parameter
+     * @return
+     */
+    @Override
     public boolean supportsParameter(MethodParameter parameter) {
         Class<?> clazz = parameter.getParameterType();
         return clazz == MiaoshaUser.class;
     }
 
+    /**
+     * getParameter：先从url中获取，再从Cookie中获取
+     * 根据token取出用户信息
+     *
+     * @param parameter
+     * @param mavContainer
+     * @param webRequest
+     * @param binderFactory
+     * @return
+     * @throws Exception
+     */
+    @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
 
         String paramToken = request.getParameter(MiaoshaUserService.COOKI_NAME_TOKEN);
         String cookieToken = getCookieValue(request, MiaoshaUserService.COOKI_NAME_TOKEN);
+
         if (StringUtils.isEmpty(cookieToken) && StringUtils.isEmpty(paramToken)) {
             return null;
         }
@@ -41,6 +62,14 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
         return userService.getByToken(response, token);
     }
 
+    /**
+     * 遍历request所有的Cookie，找到需要的返回
+     * request.getCookies()：返回此次请求发送的Cookie
+     *
+     * @param request
+     * @param cookiName
+     * @return
+     */
     private String getCookieValue(HttpServletRequest request, String cookiName) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null || cookies.length == 0) {

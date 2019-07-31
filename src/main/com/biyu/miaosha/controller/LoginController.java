@@ -29,6 +29,9 @@ public class LoginController {
 
     /**
      * 跳转至login页面
+     * 因为配置了thymeleaf的前置为classpath:/templates/
+     * 后置为.html
+     * 所以return login会变成-->login.html, 并去路径下寻找
      *
      * @return
      */
