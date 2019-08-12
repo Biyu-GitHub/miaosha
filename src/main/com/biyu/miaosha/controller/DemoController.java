@@ -1,6 +1,7 @@
 package com.biyu.miaosha.controller;
 
 import com.biyu.miaosha.entity.User;
+import com.biyu.miaosha.rabbitmq.MQSender;
 import com.biyu.miaosha.redis.RedisService;
 import com.biyu.miaosha.redis.UserKey;
 import com.biyu.miaosha.result.CodeMsg;
@@ -22,6 +23,9 @@ public class DemoController {
 
     @Autowired
     RedisService redisService;
+
+    @Autowired
+    MQSender sender;
 
     @RequestMapping("/")
     @ResponseBody
@@ -79,5 +83,12 @@ public class DemoController {
         user.setName("1111");
         redisService.set(UserKey.getById, ""+1, user);//UserKey:id1
         return Result.success(true);
+    }
+
+    @RequestMapping("/mq")
+    @ResponseBody
+    public Result<String> mq() {
+        sender.send("hello, RabbitMQ");
+        return Result.success("Hello，world");
     }
 }
