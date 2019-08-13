@@ -43,11 +43,10 @@
         	<span id="miaoshaTip"></span>
         </td>
         <td>
-        <!--  
-        	<form id="miaoshaForm" method="post" action="/miaosha/do_miaosha">
-        		<button class="btn btn-primary btn-block" type="submit" id="buyButton">立即秒杀</button>
-        		<input type="hidden" name="goodsId"  id="goodsId" />
-        	</form>-->
+<!--        	<form id="miaoshaForm" method="post" action="/miaosha/do_miaosha">-->
+<!--        		<button class="btn btn-primary btn-block" type="submit" id="buyButton">立即秒杀</button>-->
+<!--        		<input type="hidden" name="goodsId"  id="goodsId" />-->
+<!--        	</form>-->
         	<button class="btn btn-primary btn-block" type="button" id="buyButton"onclick="doMiaosha()">立即秒杀</button>
         	<input type="hidden" name="goodsId"  id="goodsId" />
         </td>
@@ -147,7 +146,6 @@ function render(detail){
 }
 
 $(function(){
-	//countDown();
 	getDetail();
 });
 
