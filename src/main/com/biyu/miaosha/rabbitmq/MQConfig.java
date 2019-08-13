@@ -8,7 +8,7 @@ import org.springframework.amqp.core.Queue;
 public class MQConfig {
 
     // 定义消息队列的名字
-    public static final String QUEUE = "queue";
+    public static final String MIAOSHA_QUEUE = "miaosha.queue";
 
     /**
      * Derict 模式
@@ -16,6 +16,8 @@ public class MQConfig {
      */
     @Bean
     public Queue queue() {
-        return new Queue(QUEUE, true);
+        return new Queue(MIAOSHA_QUEUE, true);
     }
+
+
 }

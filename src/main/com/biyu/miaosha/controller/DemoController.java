@@ -85,10 +85,10 @@ public class DemoController {
         return Result.success(true);
     }
 
-    @RequestMapping("/mq")
-    @ResponseBody
-    public Result<String> mq() {
-        sender.send("hello, RabbitMQ");
-        return Result.success("Hello，world");
-    }
+//    @RequestMapping("/mq")
+//    @ResponseBody
+//    public Result<String> mq() {
+//        sender.send("hello, RabbitMQ");
+//        return Result.success("Hello，world");
+//    }
 }

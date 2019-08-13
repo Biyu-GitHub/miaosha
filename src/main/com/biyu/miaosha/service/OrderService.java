@@ -35,13 +35,14 @@ public class OrderService {
         orderInfo.setOrderChannel(1);
         orderInfo.setStatus(0);
         orderInfo.setUserId(user.getId());
-        //  插入order数据
-        long orderId = orderDao.insert(orderInfo);
+
+        //  插入order数据，插入成功，Mybatis会将id插入到对象
+        orderDao.insert(orderInfo);
 
         // 创建秒杀Order
         MiaoshaOrder miaoshaOrder = new MiaoshaOrder();
         miaoshaOrder.setGoodsId(goods.getId());
-        miaoshaOrder.setOrderId(orderId);
+        miaoshaOrder.setOrderId(orderInfo.getId()); // 获取新生成的对象的id
         miaoshaOrder.setUserId(user.getId());
         //  插入miaosha_order数据
         orderDao.insertMiaoshaOrder(miaoshaOrder);
