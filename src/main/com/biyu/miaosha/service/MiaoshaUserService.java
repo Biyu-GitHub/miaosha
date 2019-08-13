@@ -37,17 +37,16 @@ public class MiaoshaUserService {
     public MiaoshaUser getById(long id) {
 
         // 取缓存
-//        MiaoshaUser user = redisService.get(MiaoshaUserKey.getById, "" + id, MiaoshaUser.class);
-//        if (user != null) {
-//            return user;
-//        }
-//        //取数据库
-//        user = miaoshaUserDao.getById(id);
-//        if (user != null) {
-//            redisService.set(MiaoshaUserKey.getById, "" + id, user);
-//        }
-//        return user;
-        return miaoshaUserDao.getById(id);
+        MiaoshaUser user = redisService.get(MiaoshaUserKey.getById, "" + id, MiaoshaUser.class);
+        if (user != null) {
+            return user;
+        }
+        //取数据库
+        user = miaoshaUserDao.getById(id);
+        if (user != null) {
+            redisService.set(MiaoshaUserKey.getById, "" + id, user);
+        }
+        return user;
     }
 
     /**
