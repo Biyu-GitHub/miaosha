@@ -17,11 +17,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 
@@ -47,7 +45,7 @@ public class MiaoshaController implements InitializingBean {
     @Autowired
     MQSender sender;
 
-    private HashMap<Long, Boolean> localOverMap =  new HashMap<Long, Boolean>();
+    private HashMap<Long, Boolean> localOverMap = new HashMap<Long, Boolean>();
 
     /**
      * 系统初始化时会调用这个方法，我们在这里把商品添加到缓存中
@@ -67,13 +65,19 @@ public class MiaoshaController implements InitializingBean {
         }
     }
 
-    @RequestMapping("/do_miaosha")
+    @RequestMapping("/{path}/do_miaosha")
     @ResponseBody
-    public Result<Integer> miaosha(Model model, MiaoshaUser user, @RequestParam("goodsId") long goodsId) {
+    public Result<Integer> miaosha(Model model, MiaoshaUser user, @RequestParam("goodsId") long goodsId, @PathVariable("path") String path) {
         model.addAttribute("user", user);
         // 判断用户是否登录
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
+        }
+
+        // 验证path
+        boolean check = miaoshaService.checkPath(user, goodsId, path);
+        if (!check) {
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
         }
 //        //判断库存
 //        GoodsVo goods = goodsService.getGoodsVoByGoodsId(goodsId);
@@ -98,7 +102,7 @@ public class MiaoshaController implements InitializingBean {
 
         //内存标记，减少redis访问
         boolean over = localOverMap.get(goodsId);
-        if(over) {
+        if (over) {
             return Result.error(CodeMsg.MIAO_SHA_OVER);
         }
 
@@ -111,7 +115,7 @@ public class MiaoshaController implements InitializingBean {
 
         //判断是否已经秒杀到了
         MiaoshaOrder order = orderService.getMiaoshaOrderByUserIdGoodsId(user.getId(), goodsId);
-        if(order != null) {
+        if (order != null) {
             return Result.error(CodeMsg.REPEATE_MIAOSHA);
         }
 
@@ -127,16 +131,38 @@ public class MiaoshaController implements InitializingBean {
      * orderId：成功
      * -1：秒杀失败
      * 0： 排队中
-     * */
-    @RequestMapping(value="/result", method= RequestMethod.GET)
+     */
+    @RequestMapping(value = "/result", method = RequestMethod.GET)
     @ResponseBody
-    public Result<Long> miaoshaResult(Model model,MiaoshaUser user,
-                                      @RequestParam("goodsId")long goodsId) {
+    public Result<Long> miaoshaResult(Model model, MiaoshaUser user,
+                                      @RequestParam("goodsId") long goodsId) {
         model.addAttribute("user", user);
-        if(user == null) {
+        if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
-        long result  =miaoshaService.getMiaoshaResult(user.getId(), goodsId);
+        long result = miaoshaService.getMiaoshaResult(user.getId(), goodsId);
         return Result.success(result);
+    }
+
+    /**
+     * 动态生成一个随机path，存储到Redis中，有效期60秒
+     * key：MiaoshaKey:mpuserId_goodsId
+     * val：随机uuid + 固定字符串
+     *
+     * @param request
+     * @param user
+     * @param goodsId
+     * @return
+     */
+    @RequestMapping(value = "/path", method = RequestMethod.GET)
+    @ResponseBody
+    public Result<String> getMiaoshaPath(HttpServletRequest request, MiaoshaUser user,
+                                         @RequestParam("goodsId") long goodsId) {
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+
+        String path = miaoshaService.createMiaoshaPath(user, goodsId);
+        return Result.success(path);
     }
 }

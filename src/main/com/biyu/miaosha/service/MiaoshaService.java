@@ -3,6 +3,8 @@ package com.biyu.miaosha.service;
 import com.biyu.miaosha.entity.MiaoshaOrder;
 import com.biyu.miaosha.redis.MiaoshaKey;
 import com.biyu.miaosha.redis.RedisService;
+import com.biyu.miaosha.util.MD5Util;
+import com.biyu.miaosha.util.UUIDUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,24 +40,42 @@ public class MiaoshaService {
 
     public long getMiaoshaResult(Long userId, long goodsId) {
         MiaoshaOrder order = orderService.getMiaoshaOrderByUserIdGoodsId(userId, goodsId);
-        if(order != null) {//秒杀成功
+        if (order != null) {//秒杀成功
             return order.getOrderId();
-        }else {
+        } else {
             boolean isOver = getGoodsOver(goodsId);
-            if(isOver) {
+            if (isOver) {
                 return -1;
-            }else {
+            } else {
                 return 0;
             }
         }
     }
 
     private void setGoodsOver(Long goodsId) {
-        redisService.set(MiaoshaKey.isGoodsOver, ""+goodsId, true);
+        redisService.set(MiaoshaKey.isGoodsOver, "" + goodsId, true);
     }
 
     private boolean getGoodsOver(long goodsId) {
-        return redisService.exists(MiaoshaKey.isGoodsOver, ""+goodsId);
+        return redisService.exists(MiaoshaKey.isGoodsOver, "" + goodsId);
     }
 
+    public String createMiaoshaPath(MiaoshaUser user, long goodsId) {
+        if (user == null || goodsId <= 0) {
+            return null;
+        }
+
+        String str = MD5Util.md5(UUIDUtil.uuid() + "123456");
+        redisService.set(MiaoshaKey.getMiaoshaPath, "" + user.getId() + "_" + goodsId, str);
+        return str;
+    }
+
+    public boolean checkPath(MiaoshaUser user, long goodsId, String path) {
+        if (user == null || path == null) {
+            return false;
+        }
+
+        String pathOld = redisService.get(MiaoshaKey.getMiaoshaPath, "" + user.getId() + "_" + goodsId, String.class);
+        return path.equals(pathOld);
+    }
 }
